@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "itm-admin-ui",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd server/ruoyi-ui && VITE_PROXY_TARGET=http://127.0.0.1:8080 VITE_PORT=8088 VITE_NO_OPEN=1 npx vite"],
+      "port": 8088
+    }
+  ]
+}

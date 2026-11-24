@@ -1,0 +1,13 @@
+{
+  "name": "@itm/sync-merge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "备份恢复、分享码拉取、本地导入的合并规则（文档一 6.10.7）：纯函数，只计算不写库",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  }
+}

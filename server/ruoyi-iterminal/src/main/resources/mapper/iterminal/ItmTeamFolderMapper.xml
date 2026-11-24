@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmTeamFolderMapper">
+
+    <resultMap type="ItmTeamFolder" id="FolderResult">
+        <id     property="folderId" column="folder_id" />
+        <result property="parentId" column="parent_id" />
+        <result property="folderName" column="folder_name" />
+        <result property="roleKeys" column="role_keys" />
+        <result property="sort" column="sort" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+    <sql id="selectFolder">select folder_id, parent_id, folder_name, role_keys, sort, create_by, create_time, update_by, update_time from itm_team_folder</sql>
+
+    <select id="selectAll" resultMap="FolderResult"><include refid="selectFolder"/> order by sort, folder_id</select>
+    <select id="selectById" parameterType="Long" resultMap="FolderResult"><include refid="selectFolder"/> where folder_id = #{folderId}</select>
+    <select id="countChildren" parameterType="Long" resultType="int">select count(*) from itm_team_folder where parent_id = #{folderId}</select>
+
+    <insert id="insertFolder" parameterType="ItmTeamFolder" useGeneratedKeys="true" keyProperty="folderId">
+        insert into itm_team_folder (parent_id, folder_name, role_keys, sort, create_by, create_time)
+        values (ifnull(#{parentId}, 0), #{folderName}, ifnull(#{roleKeys}, ''), ifnull(#{sort}, 0), ifnull(#{createBy}, ''), sysdate())
+    </insert>
+
+    <update id="updateFolder" parameterType="ItmTeamFolder">
+        update itm_team_folder
+        <set>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="folderName != null">folder_name = #{folderName},</if>
+            <if test="roleKeys != null">role_keys = #{roleKeys},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where folder_id = #{folderId}
+    </update>
+
+    <delete id="deleteById" parameterType="Long">delete from itm_team_folder where folder_id = #{folderId}</delete>
+</mapper>

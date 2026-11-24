@@ -1,0 +1,21 @@
+/* 第三十一轮：标签拖动换位置、执行结果折叠 */
+
+/* 拖动标签：放下位置用主色竖线标出（::before / ::after 已经用来画选中标签的反向圆角，这里用 inset 阴影） */
+.workspace-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab.tab-drop-before {
+  box-shadow: inset 2px 0 0 var(--itm-primary);
+}
+.workspace-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab.tab-drop-after {
+  box-shadow: inset -2px 0 0 var(--itm-primary);
+}
+.workspace-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab.tab-dragging {
+  opacity: 0.55;
+}
+/* 第三十二轮：拖动标签时整条标签栏都可以放下，暂时取消空白处的「拖动窗口」（那里收不到拖放事件，松手会弹回去） */
+.workspace-tabs.tab-dnd > .ant-tabs-nav {
+  -webkit-app-region: no-drag;
+}
+
+/* 一轮对话结束后，命令卡片的执行结果收起成一行「执行结果 展开（N 行）」 */
+.step-card .step-output.folded .step-output-title {
+  padding-bottom: 6px;
+}

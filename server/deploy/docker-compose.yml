@@ -1,0 +1,117 @@
+# iTerminal 服务端一键部署：MySQL 8.4 + Redis 7 + 后端（Spring Boot）+ Nginx（管理后台静态文件、/prod-api 反向代理）
+# 用法（在 deploy 目录）：
+#   cp .env.example .env      # 修改里面的密码和密钥
+#   docker compose up -d --build
+# 第一次启动时 MySQL 自动按顺序执行 ../sql 下的 3 个初始化脚本（数据卷为空时才执行）。
+name: iterminal
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 里设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: iterminal
+      MYSQL_USER: itm
+      MYSQL_PASSWORD: ${DB_PASSWORD:?请在 .env 里设置 DB_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --default-time-zone=+08:00
+      - --max-allowed-packet=64M
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../sql/ry_20260417.sql:/docker-entrypoint-initdb.d/01-ry.sql:ro
+      - ../sql/quartz.sql:/docker-entrypoint-initdb.d/02-quartz.sql:ro
+      - ../sql/iterminal.sql:/docker-entrypoint-initdb.d/03-iterminal.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend/Dockerfile
+      args:
+        MAVEN_MIRROR: ${MAVEN_MIRROR:-}
+    image: iterminal/backend:latest
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: iterminal
+      DB_USER: itm
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      TOKEN_SECRET: ${TOKEN_SECRET:?请在 .env 里设置 TOKEN_SECRET（openssl rand -hex 32）}
+      ITM_DATA_KEY: ${ITM_DATA_KEY:?请在 .env 里设置 ITM_DATA_KEY（openssl rand -hex 32，设置后不要再改）}
+      DRUID_USER: ${DRUID_USER:-itm}
+      DRUID_PASSWORD: ${DRUID_PASSWORD:?请在 .env 里设置 DRUID_PASSWORD}
+      ITM_UPLOAD_PATH: /data/upload
+      ITM_LOG_PATH: /data/logs
+      ITM_MAX_UPLOAD: ${ITM_MAX_UPLOAD:-1GB}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx1g}
+      # 邮件通知（可选）
+      ITM_SMTP_HOST: ${ITM_SMTP_HOST:-}
+      ITM_SMTP_PORT: ${ITM_SMTP_PORT:-465}
+      ITM_SMTP_USER: ${ITM_SMTP_USER:-}
+      ITM_SMTP_PASSWORD: ${ITM_SMTP_PASSWORD:-}
+      ITM_SMTP_FROM: ${ITM_SMTP_FROM:-}
+      ITM_SMTP_SSL: ${ITM_SMTP_SSL:-true}
+      ITM_SMTP_STARTTLS: ${ITM_SMTP_STARTTLS:-false}
+      TZ: Asia/Shanghai
+    volumes:
+      - backend-data:/data
+    # 宿主机上的本地向量服务（例如 Ollama + bge-m3）：容器里用 http://host.docker.internal:11434/v1 访问
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/captchaImage > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: deploy/nginx/Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
+    image: iterminal/admin:latest
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    environment:
+      TZ: Asia/Shanghai
+
+volumes:
+  mysql-data:
+  redis-data:
+  backend-data:

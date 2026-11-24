@@ -1,0 +1,20 @@
+{
+  "name": "@itm/agent-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent 循环、模型客户端、工具定义、提示词、进程间 RPC（文档一 7.2；不依赖 Electron）",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
+    "openai": "^7.25.0"
+  },
+  "devDependencies": {
+    "@itm/protocol": "workspace:*"
+  }
+}

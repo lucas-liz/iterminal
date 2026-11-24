@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmDeviceMapper">
+
+    <resultMap type="ItmDevice" id="ItmDeviceResult">
+        <id     property="deviceId" column="device_id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="deviceName" column="device_name" />
+        <result property="os" column="os" />
+        <result property="arch" column="arch" />
+        <result property="clientVersion" column="client_version" />
+        <result property="refreshTokenHash" column="refresh_token_hash" />
+        <result property="refreshExpiresAt" column="refresh_expires_at" />
+        <result property="status" column="status" />
+        <result property="online" column="online" />
+        <result property="lastIp" column="last_ip" />
+        <result property="lastSeenAt" column="last_seen_at" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+    <sql id="selectItmDevice">select device_id, user_id, user_name, device_name, os, arch, client_version, refresh_token_hash, refresh_expires_at, status, online, last_ip, last_seen_at, create_time, update_time from itm_device</sql>
+
+    <select id="selectItmDeviceById" parameterType="String" resultMap="ItmDeviceResult">
+        <include refid="selectItmDevice"/> where device_id = #{deviceId}
+    </select>
+
+    <select id="selectItmDeviceList" parameterType="ItmDevice" resultMap="ItmDeviceResult">
+        <include refid="selectItmDevice"/>
+        <where>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="userName != null and userName != ''">and user_name like concat('%', #{userName}, '%')</if>
+            <if test="deviceName != null and deviceName != ''">and device_name like concat('%', #{deviceName}, '%')</if>
+            <if test="os != null and os != ''">and os = #{os}</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+            <if test="online != null and online != ''">and online = #{online}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">and date_format(last_seen_at,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')</if>
+            <if test="params.endTime != null and params.endTime != ''">and date_format(last_seen_at,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')</if>
+        </where>
+        order by last_seen_at desc
+    </select>
+
+    <insert id="upsertItmDevice" parameterType="ItmDevice">
+        insert into itm_device (device_id, user_id, user_name, device_name, os, arch, client_version, refresh_token_hash, refresh_expires_at, status, online, last_ip, last_seen_at, create_time, update_time)
+        values (#{deviceId}, #{userId}, #{userName}, #{deviceName}, #{os}, #{arch}, #{clientVersion}, #{refreshTokenHash}, #{refreshExpiresAt}, '0', '0', #{lastIp}, sysdate(), sysdate(), sysdate())
+        on duplicate key update user_id = values(user_id), user_name = values(user_name), device_name = values(device_name), os = values(os), arch = values(arch),
+            client_version = values(client_version), refresh_token_hash = values(refresh_token_hash), refresh_expires_at = values(refresh_expires_at),
+            status = '0', last_ip = values(last_ip), last_seen_at = sysdate(), update_time = sysdate()
+    </insert>
+
+    <update id="updateItmDevice" parameterType="ItmDevice">
+        update itm_device
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="clientVersion != null">client_version = #{clientVersion},</if>
+            <if test="refreshTokenHash != null">refresh_token_hash = nullif(#{refreshTokenHash}, ''),</if>
+            <if test="refreshExpiresAt != null">refresh_expires_at = #{refreshExpiresAt},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="online != null">online = #{online},</if>
+            <if test="lastIp != null">last_ip = #{lastIp},</if>
+            <if test="lastSeenAt != null">last_seen_at = #{lastSeenAt},</if>
+            update_time = sysdate()
+        </trim>
+        where device_id = #{deviceId}
+    </update>
+
+    <update id="resetOnline">
+        update itm_device set online = '0' where online = '1'
+    </update>
+
+</mapper>

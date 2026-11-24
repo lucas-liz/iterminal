@@ -1,0 +1,44 @@
+/* 第二十九轮：定时任务的执行结果操作、后台生成执行方案、数据库问 AI 对话 */
+.run-report.lv-plain {
+  border-left-color: var(--itm-primary);
+}
+.run-actions {
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+/* SQL 工作台右侧的 AI 对话（和终端页右侧的 AI 面板同一个组件） */
+.sql-chat {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--itm-border);
+  background: var(--itm-panel-bg);
+}
+.sql-chat-resizer {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 3;
+}
+.sql-chat-resizer:hover {
+  background: color-mix(in srgb, var(--itm-primary) 25%, transparent);
+}
+body.col-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+.agent-panel.db-chat .page-hello-sub {
+  margin-top: 6px;
+  max-width: 280px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+  line-height: 1.6;
+}

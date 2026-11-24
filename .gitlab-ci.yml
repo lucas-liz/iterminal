@@ -1,0 +1,94 @@
+# iTerminal 客户端 CI（文档一 11.4）：检查 → 三平台构建（各自在原生系统上编译原生模块）→ 手动发布到后端发布服务。
+# 签名证书和公证密钥只放在 CI 的受保护变量里（Settings → CI/CD → Variables，勾选 Protected / Masked）：
+#   macOS：CSC_LINK、CSC_KEY_PASSWORD、APPLE_API_KEY（.p8 文件变量）、APPLE_API_KEY_ID、APPLE_API_ISSUER
+#   Windows：CSC_LINK、CSC_KEY_PASSWORD（或 AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET 使用 Azure Trusted Signing）
+#   发布：ITM_SERVER（例如 https://ops.iterminal.corp）、ITM_RELEASE_TOKEN（管理后台签发的发布令牌）
+stages: [check, build, publish]
+
+variables:
+  PNPM_HOME: /pnpm
+  # 国内网络可以改用镜像，安装时用 electron 包自带的 checksums.json 校验
+  ELECTRON_MIRROR: ''
+  # 版本号：package.json 的版本 + 构建号（文档一 11.7）
+  ITM_BUILD_NUMBER: $CI_PIPELINE_ID
+
+.pnpm: &pnpm
+  - corepack enable
+  - pnpm config set store-dir .pnpm-store
+  - pnpm i --frozen-lockfile
+
+cache:
+  key: pnpm-$CI_COMMIT_REF_SLUG
+  paths: [.pnpm-store]
+
+check:
+  stage: check
+  image: node:22
+  script:
+    - *pnpm
+    - pnpm typecheck
+    - pnpm audit --prod --audit-level high || echo "pnpm audit 有告警，请检查"
+    # 单元 / 集成测试用 Electron 自带的 Node 运行，需要 Electron 的系统依赖
+    - apt-get update -qq && apt-get install -y -qq libnss3 libgtk-3-0 libasound2 libgbm1 libxss1 > /dev/null
+    - pnpm test
+
+.build: &build
+  stage: build
+  needs: [check]
+  script:
+    - *pnpm
+    - pnpm --filter @itm/desktop build
+    - pnpm --filter @itm/desktop exec electron-builder $EB_ARGS --publish never -c.extraMetadata.buildNumber=$ITM_BUILD_NUMBER
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - apps/desktop/release/*/*.dmg
+      - apps/desktop/release/*/*.zip
+      - apps/desktop/release/*/*.exe
+      - apps/desktop/release/*/*.msi
+      - apps/desktop/release/*/*.AppImage
+      - apps/desktop/release/*/*.deb
+      - apps/desktop/release/*/*.rpm
+      - apps/desktop/release/*/*.blockmap
+      - apps/desktop/release/*/latest*.yml
+
+build:mac:
+  <<: *build
+  tags: [macos-arm64]
+  variables:
+    # arm64 机器上用对应架构的预编译包构建 Intel 版本（文档一 11.2）
+    EB_ARGS: --mac --arm64 --x64
+
+build:win:
+  <<: *build
+  tags: [windows]
+  variables:
+    EB_ARGS: --win --x64
+
+build:linux:x64:
+  <<: *build
+  image: electronuserland/builder:22
+  variables:
+    EB_ARGS: --linux --x64
+
+# 原生模块优先在原生架构上构建；没有 arm64 构建机时可以去掉 tags 用 QEMU（慢）
+build:linux:arm64:
+  <<: *build
+  image: electronuserland/builder:22
+  tags: [linux-arm64]
+  variables:
+    EB_ARGS: --linux --arm64
+  allow_failure: true
+
+publish:
+  stage: publish
+  image: alpine:3.20
+  when: manual
+  needs: [build:mac, build:win, build:linux:x64]
+  variables:
+    CHANNEL: stable
+    ROLLOUT_PERCENT: '10'
+  before_script:
+    - apk add --no-cache bash curl jq gnupg
+  script:
+    - ./scripts/publish.sh --channel "$CHANNEL" --rollout "$ROLLOUT_PERCENT" --dir apps/desktop/release

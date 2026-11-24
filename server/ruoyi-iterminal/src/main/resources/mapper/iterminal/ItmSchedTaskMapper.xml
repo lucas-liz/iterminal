@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmSchedTaskMapper">
+
+    <resultMap type="ItmSchedTask" id="ItmSchedTaskResult">
+        <id     property="taskId" column="task_id" />
+        <result property="taskName" column="task_name" />
+        <result property="taskType" column="task_type" />
+        <result property="command" column="command" />
+        <result property="prompt" column="prompt" />
+        <result property="skill" column="skill" />
+        <result property="skillParams" column="params" />
+        <result property="deviceId" column="device_id" />
+        <result property="hosts" column="hosts" />
+        <result property="cronExpression" column="cron_expression" />
+        <result property="permissionCap" column="permission_cap" />
+        <result property="timeoutMin" column="timeout_min" />
+        <result property="status" column="status" />
+        <result property="lastRunAt" column="last_run_at" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+    <sql id="selectItmSchedTask">select task_id, task_name, task_type, command, prompt, skill, params, device_id, hosts, cron_expression, permission_cap, timeout_min, status, last_run_at, create_by, create_time, update_by, update_time, remark from itm_sched_task</sql>
+
+    <select id="selectItmSchedTaskById" parameterType="Long" resultMap="ItmSchedTaskResult">
+        <include refid="selectItmSchedTask"/> where task_id = #{taskId}
+    </select>
+
+    <select id="selectItmSchedTaskList" parameterType="ItmSchedTask" resultMap="ItmSchedTaskResult">
+        <include refid="selectItmSchedTask"/>
+        <where>
+            <if test="taskName != null and taskName != ''">and task_name like concat('%', #{taskName}, '%')</if>
+            <if test="taskType != null and taskType != ''">and task_type = #{taskType}</if>
+            <if test="deviceId != null and deviceId != ''">and device_id = #{deviceId}</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by task_id desc
+    </select>
+
+    <insert id="insertItmSchedTask" parameterType="ItmSchedTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into itm_sched_task (task_name, task_type, command, prompt, skill, params, device_id, hosts, cron_expression, permission_cap, timeout_min, status, create_by, create_time, remark)
+        values (#{taskName}, #{taskType}, #{command}, #{prompt}, #{skill}, #{skillParams}, #{deviceId}, #{hosts}, #{cronExpression}, #{permissionCap}, #{timeoutMin}, #{status}, #{createBy}, sysdate(), #{remark})
+    </insert>
+
+    <update id="updateItmSchedTask" parameterType="ItmSchedTask">
+        update itm_sched_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="taskName != null">task_name = #{taskName},</if>
+            <if test="taskType != null">task_type = #{taskType},</if>
+            <if test="command != null">command = #{command},</if>
+            <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="skill != null">skill = #{skill},</if>
+            <if test="skillParams != null">params = #{skillParams},</if>
+            <if test="deviceId != null">device_id = #{deviceId},</if>
+            <if test="hosts != null">hosts = #{hosts},</if>
+            <if test="cronExpression != null">cron_expression = #{cronExpression},</if>
+            <if test="permissionCap != null">permission_cap = #{permissionCap},</if>
+            <if test="timeoutMin != null">timeout_min = #{timeoutMin},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastRunAt != null">last_run_at = #{lastRunAt},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteItmSchedTaskByIds" parameterType="Long">
+        delete from itm_sched_task where task_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,619 @@
+/* ================================================================ 第三十五轮：运维审计、批量执行 */
+
+/* ---------------------------------------------------------------- 通用：筛选卡片 + 表格卡片（运维审计、批量执行记录） */
+.ops-audit {
+  display: flex;
+  flex-direction: column;
+}
+.ops-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.ops-filter-card,
+.ops-table-card {
+  border: 1px solid var(--itm-border);
+  border-radius: 12px;
+  background: var(--itm-card-bg);
+}
+.ops-filter-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 12px 16px;
+}
+.ops-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 420px;
+}
+.ops-filter-item > .ant-select,
+.ops-filter-item > .ant-input,
+.ops-filter-item > .ant-input-affix-wrapper,
+.ops-filter-item > .ant-picker {
+  flex: 1;
+  min-width: 0;
+}
+.ops-filter-label {
+  flex: none;
+  min-width: 56px;
+  color: var(--itm-text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ops-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.ops-table-card {
+  padding: 4px 16px 8px;
+}
+.ops-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0 10px;
+}
+.ops-table-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--itm-text);
+}
+.ops-table-sub {
+  font-size: 12px;
+}
+.ops-table-card .ant-table-thead > tr > th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ops-host-cell {
+  line-height: 1.45;
+  min-width: 0;
+}
+.ops-host-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ops-host-addr {
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+.ops-time-cell {
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.ops-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.ops-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--itm-text-secondary);
+}
+.ops-status.ok::before {
+  background: var(--itm-primary);
+}
+.ops-status.running::before {
+  background: var(--itm-log-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--itm-log-success) 22%, transparent);
+}
+.ops-status.bad::before {
+  background: var(--itm-log-error);
+}
+.ops-ops .ant-btn-link {
+  padding: 0 4px;
+}
+.ops-result {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+.ops-result-sub {
+  font-size: 11.5px;
+  color: var(--itm-text-secondary);
+}
+.audit-body.ops-audit .audit-cmd {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ---------------------------------------------------------------- 批量执行 */
+.batch-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 16px;
+  overflow: hidden;
+}
+.batch-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.batch-view.hidden {
+  display: none;
+}
+.batch-compose {
+  flex: 1;
+  min-height: 420px;
+  display: grid;
+  gap: 12px;
+}
+.batch-compose.exec {
+  grid-template-columns: minmax(280px, 320px) minmax(360px, 1fr) minmax(240px, 280px);
+}
+.batch-compose.upload {
+  grid-template-columns: minmax(180px, 210px) minmax(300px, 360px) minmax(360px, 1fr);
+}
+.batch-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--itm-border);
+  border-radius: 12px;
+  background: var(--itm-card-bg);
+  padding: 12px 14px;
+}
+.batch-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 26px;
+}
+.batch-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--itm-text);
+  white-space: nowrap;
+}
+.batch-card-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--itm-text-secondary);
+}
+.batch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.batch-form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.batch-form-label {
+  flex: none;
+  width: 64px;
+  line-height: 32px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--itm-text-secondary);
+  white-space: nowrap;
+}
+.batch-form-label.required::before {
+  content: '*';
+  margin-right: 3px;
+  color: var(--itm-log-error);
+}
+.batch-form-control {
+  flex: 1;
+  min-width: 0;
+}
+.batch-form-tip {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--itm-text-secondary);
+}
+.batch-form-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--itm-log-error);
+}
+.batch-form-hint {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.batch-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.batch-inline-label {
+  margin-left: 6px;
+  font-size: 13px;
+  color: var(--itm-text-secondary);
+}
+.batch-help {
+  color: var(--itm-text-secondary);
+  cursor: help;
+}
+.batch-host-field {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--itm-border);
+  border-radius: 8px;
+  background: var(--itm-input-bg);
+}
+.batch-host-pick.ant-btn {
+  height: 24px;
+  padding: 0;
+}
+.batch-host-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.batch-host-tags .ant-tag {
+  margin: 0;
+}
+
+/* 命令编辑器：固定深色 */
+.batch-editor-card {
+  padding-bottom: 10px;
+}
+.batch-editor-wrap {
+  flex: 1;
+  min-height: 260px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #2c2e33;
+  background: #1e1f22;
+}
+.shell-editor {
+  height: 100%;
+}
+.shell-editor .cm-editor {
+  height: 100%;
+}
+.batch-editor-foot {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+
+/* 执行历史 */
+.batch-history-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 -6px;
+  padding: 0 6px;
+}
+.batch-history-item {
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.batch-history-item:hover {
+  background: var(--itm-hover);
+  border-color: var(--itm-border);
+}
+.batch-history-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.batch-history-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+.batch-history-cmd {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--itm-text-secondary);
+}
+.batch-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--itm-text-secondary);
+}
+.batch-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.batch-status-tag .ant-tag {
+  margin: 0;
+}
+.batch-status-counts {
+  font-size: 12px;
+}
+
+/* 上传：步骤、文件列表 */
+.batch-steps {
+  gap: 14px;
+  padding-top: 16px;
+}
+.batch-files-empty {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 48px;
+}
+.batch-files-empty-icon {
+  font-size: 52px;
+  color: color-mix(in srgb, var(--itm-primary) 55%, transparent);
+}
+.batch-file-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.batch-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 9px;
+}
+.batch-file-row:hover {
+  background: var(--itm-hover);
+}
+.batch-file-icon {
+  font-size: 18px;
+  color: var(--itm-text-secondary);
+}
+.batch-file-icon.dir {
+  color: #f5b041;
+}
+.batch-file-meta {
+  flex: 1;
+  min-width: 0;
+}
+.batch-file-name,
+.batch-file-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.batch-file-path {
+  font-size: 11.5px;
+  color: var(--itm-text-secondary);
+}
+.batch-file-size {
+  flex: none;
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+
+/* 执行确认 */
+.batch-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.batch-confirm-cmd {
+  max-height: 200px;
+  overflow: auto;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1e1f22;
+  color: #d6d6d6;
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.batch-confirm-deny {
+  color: var(--itm-log-error);
+  font-size: 12.5px;
+}
+
+/* 执行详情抽屉 */
+.batch-drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.batch-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.batch-drawer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.batch-drawer-meta .k {
+  display: inline-block;
+  width: 48px;
+  color: var(--itm-text-secondary);
+}
+.batch-drawer-cmd {
+  position: relative;
+  border-radius: 10px;
+  background: #1e1f22;
+}
+.batch-drawer-cmd pre {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 40px 10px 12px;
+  color: #d6d6d6;
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.batch-drawer-cmd .ant-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: #9da5b4;
+}
+.batch-drawer-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.batch-drawer-bar .ant-progress {
+  flex: 1;
+  margin: 0;
+}
+.batch-host-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.batch-host-row {
+  border: 1px solid var(--itm-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.batch-host-row.s-failed,
+.batch-host-row.s-denied,
+.batch-host-row.s-timeout {
+  border-color: color-mix(in srgb, var(--itm-log-error) 35%, var(--itm-border));
+}
+.batch-host-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.batch-host-head:hover {
+  background: var(--itm-hover);
+}
+.batch-host-head .ant-tag {
+  margin: 0;
+}
+.batch-host-icon.ok {
+  color: var(--itm-log-success);
+}
+.batch-host-icon.bad {
+  color: var(--itm-log-error);
+}
+.batch-host-icon.run {
+  color: var(--itm-primary);
+}
+.batch-host-icon.wait {
+  color: var(--itm-text-secondary);
+}
+.batch-host-name {
+  font-weight: 500;
+}
+.batch-host-addr {
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+.batch-host-flex {
+  flex: 1;
+}
+.batch-host-status {
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+.batch-host-time {
+  min-width: 52px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--itm-text-secondary);
+}
+.batch-host-body {
+  padding: 0 12px 10px;
+}
+.batch-host-error {
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  color: var(--itm-log-error);
+}
+.batch-host-output {
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #1e1f22;
+  color: #d6d6d6;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.batch-host-tools {
+  margin-top: 4px;
+}
+
+/* 窄窗口：三栏改成上下排 */
+@media (max-width: 1180px) {
+  .batch-compose.exec,
+  .batch-compose.upload {
+    grid-template-columns: 1fr;
+    grid-auto-rows: min-content;
+  }
+  .batch-editor-wrap {
+    min-height: 240px;
+  }
+  .batch-history-list {
+    max-height: 320px;
+  }
+}
+.batch-switch-row {
+  min-height: 32px;
+}
+
+/* ---------------------------------------------------------------- 拖动窗口区域与浮层（第三十五轮修正）
+   无边框窗口里 -webkit-app-region: drag 的区域由系统当成标题栏处理：压在上面的提示、下拉菜单、弹出菜单收不到悬停和点击，
+   z-index 再高也没用。所有浮层本身都标成 no-drag。 */
+.ant-tooltip,
+.ant-popover,
+.ant-dropdown,
+.ant-dropdown-menu,
+.ant-select-dropdown,
+.ant-picker-dropdown,
+.ant-cascader-dropdown,
+.ant-modal-root,
+.ant-modal-wrap,
+.ant-drawer,
+.ant-message,
+.ant-notification,
+.ant-image-preview-root,
+.ant-tour {
+  -webkit-app-region: no-drag;
+}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmCommandRuleMapper">
+
+    <resultMap type="ItmCommandRule" id="ItmCommandRuleResult">
+        <id     property="ruleId" column="rule_id" />
+        <result property="ruleName" column="rule_name" />
+        <result property="matchType" column="match_type" />
+        <result property="pattern" column="pattern" />
+        <result property="level" column="level" />
+        <result property="reason" column="reason" />
+        <result property="priority" column="priority" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+    <sql id="selectItmCommandRule">select rule_id, rule_name, match_type, pattern, level, reason, priority, status, create_by, create_time, update_by, update_time from itm_command_rule</sql>
+
+    <select id="selectItmCommandRuleById" parameterType="Long" resultMap="ItmCommandRuleResult">
+        <include refid="selectItmCommandRule"/> where rule_id = #{ruleId}
+    </select>
+
+    <select id="selectItmCommandRuleList" parameterType="ItmCommandRule" resultMap="ItmCommandRuleResult">
+        <include refid="selectItmCommandRule"/>
+        <where>
+            <if test="ruleName != null and ruleName != ''">and rule_name like concat('%', #{ruleName}, '%')</if>
+            <if test="level != null and level != ''">and level = #{level}</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by priority, rule_id
+    </select>
+
+    <insert id="insertItmCommandRule" parameterType="ItmCommandRule" useGeneratedKeys="true" keyProperty="ruleId">
+        insert into itm_command_rule (rule_name, match_type, pattern, level, reason, priority, status, create_by, create_time)
+        values (#{ruleName}, #{matchType}, #{pattern}, #{level}, #{reason}, #{priority}, #{status}, #{createBy}, sysdate())
+    </insert>
+
+    <update id="updateItmCommandRule" parameterType="ItmCommandRule">
+        update itm_command_rule
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ruleName != null">rule_name = #{ruleName},</if>
+            <if test="matchType != null">match_type = #{matchType},</if>
+            <if test="pattern != null">pattern = #{pattern},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="reason != null">reason = #{reason},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where rule_id = #{ruleId}
+    </update>
+
+    <delete id="deleteItmCommandRuleByIds" parameterType="Long">
+        delete from itm_command_rule where rule_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+
+</mapper>

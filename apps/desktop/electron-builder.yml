@@ -1,0 +1,92 @@
+# 打包配置（文档一 11.3）。本地构建不签名；签名、公证所需的证书和密钥只在 CI 里通过环境变量注入：
+#   macOS：CSC_LINK / CSC_KEY_PASSWORD（Developer ID Application），APPLE_API_KEY / APPLE_API_KEY_ID / APPLE_API_ISSUER（公证，
+#          设置了这些变量时 electron-builder 会自动公证）
+#   Windows：CSC_LINK / CSC_KEY_PASSWORD，或者 Azure Trusted Signing（AZURE_* 变量，见 .gitlab-ci.yml）
+#   Linux：可选 GPG 签名由 scripts/publish.sh 完成
+appId: com.corp.iterminal
+productName: iTerminal
+copyright: Copyright © 2026 Corp.
+electronVersion: 44.5.1
+directories:
+  output: release/${version}
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.map"
+# 原生模块不能放在 asar 里加载
+asarUnpack:
+  - "**/*.node"
+  - "**/node_modules/node-pty/**"
+  - "**/node_modules/@serialport/**"
+npmRebuild: true
+# 文档一 10.1：关闭 RunAsNode 和 --inspect，校验 asar 完整性，只从 asar 加载应用代码
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+# 深链 iterminal://（登录回调、从管理后台打开主机）
+protocols:
+  - name: iTerminal
+    schemes: [iterminal]
+
+mac:
+  category: public.app-category.developer-tools
+  # 应用图标：build/icon-source.png 用 scripts/make-icons.cjs 生成（第五轮）
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSLocalNetworkUsageDescription: iTerminal 需要访问局域网内的服务器和网络设备
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: msi
+      arch: [x64]
+  icon: build/icon.ico
+  # 不要在这里写死 signtoolOptions.publisherName（第十九轮）：它会写进 app-update.yml，electron-updater 下载新版本后
+  # 按它校验 Authenticode 签名，没签名的内测包一律「is not signed by the application owner」，自动更新装不上。
+  # 用 CSC_LINK 签名时 electron-builder 会从证书里取发布者名称，签名的正式版照样会校验。
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  differentialPackage: true
+msi:
+  oneClick: false
+  perMachine: true
+
+linux:
+  icon: build/icon.png
+  category: Development
+  maintainer: ops-platform@corp.com
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+    - target: rpm
+      arch: [x64, arm64]
+deb:
+  depends: [libsecret-1-0, libnotify4, libxtst6, libnss3]
+rpm:
+  depends: [libsecret]
+
+# 自动更新：从后端发布服务获取 latest*.yml（文档一 11.5 / 文档二 5.12）。
+# 这里是编译期默认值；运行时按「设置 → 服务端地址」（或企业预置的 ServerUrl）重新设置更新源。
+publish:
+  provider: generic
+  url: https://ops.iterminal.corp/api/v1/releases/${channel}/${os}/${arch}
+  channel: stable

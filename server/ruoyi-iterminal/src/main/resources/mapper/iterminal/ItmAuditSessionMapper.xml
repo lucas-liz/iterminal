@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmAuditSessionMapper">
+
+    <resultMap type="ItmAuditSession" id="ItmAuditSessionResult">
+        <id     property="recordingId" column="recording_id" />
+        <result property="deviceId" column="device_id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="sessionId" column="session_id" />
+        <result property="kind" column="kind" />
+        <result property="hostId" column="host_id" />
+        <result property="hostName" column="host_name" />
+        <result property="cols" column="cols" />
+        <result property="rowsCount" column="rows_count" />
+        <result property="startedAt" column="started_at" />
+        <result property="endedAt" column="ended_at" />
+        <result property="chunks" column="chunks" />
+        <result property="bytes" column="bytes" />
+        <result property="complete" column="complete" />
+        <result property="filePath" column="file_path" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+    <sql id="selectItmAuditSession">select recording_id, device_id, user_id, user_name, session_id, kind, host_id, host_name, cols, rows_count, started_at, ended_at, chunks, bytes, complete, file_path, create_time, update_time from itm_audit_session</sql>
+
+    <select id="selectItmAuditSessionById" parameterType="String" resultMap="ItmAuditSessionResult">
+        <include refid="selectItmAuditSession"/> where recording_id = #{recordingId}
+    </select>
+
+    <select id="selectItmAuditSessionList" parameterType="ItmAuditSession" resultMap="ItmAuditSessionResult">
+        <include refid="selectItmAuditSession"/>
+        <where>
+            <if test="userName != null and userName != ''">and user_name like concat('%', #{userName}, '%')</if>
+            <if test="hostName != null and hostName != ''">and host_name like concat('%', #{hostName}, '%')</if>
+            <if test="kind != null and kind != ''">and kind = #{kind}</if>
+            <if test="complete != null and complete != ''">and complete = #{complete}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">and date_format(started_at,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')</if>
+            <if test="params.endTime != null and params.endTime != ''">and date_format(started_at,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')</if>
+        </where>
+        order by started_at desc
+    </select>
+
+    <insert id="insertItmAuditSession" parameterType="ItmAuditSession">
+        insert into itm_audit_session (recording_id, device_id, user_id, user_name, session_id, kind, host_id, host_name, cols, rows_count, started_at, ended_at, chunks, bytes, complete, file_path, create_time, update_time)
+        values (#{recordingId}, #{deviceId}, #{userId}, #{userName}, #{sessionId}, #{kind}, #{hostId}, #{hostName}, #{cols}, #{rowsCount}, #{startedAt}, #{endedAt}, #{chunks}, #{bytes}, #{complete}, #{filePath}, sysdate(), sysdate())
+    </insert>
+
+    <update id="updateItmAuditSession" parameterType="ItmAuditSession">
+        update itm_audit_session
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="chunks != null">chunks = #{chunks},</if>
+            <if test="bytes != null">bytes = #{bytes},</if>
+            <if test="complete != null">complete = #{complete},</if>
+            <if test="endedAt != null">ended_at = #{endedAt},</if>
+            update_time = sysdate()
+        </trim>
+        where recording_id = #{recordingId}
+    </update>
+
+    <delete id="deleteItmAuditSessionByIds" parameterType="String">
+        delete from itm_audit_session where recording_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+
+
+    <select id="selectIdsBefore" resultType="String">
+        select recording_id from itm_audit_session where started_at &lt; #{before} order by started_at limit #{limit}
+    </select>
+</mapper>

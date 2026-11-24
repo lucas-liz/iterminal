@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmAuditCommandMapper">
+
+    <resultMap type="ItmAuditCommand" id="ItmAuditCommandResult">
+        <id     property="auditId" column="audit_id" />
+        <result property="clientEventId" column="client_event_id" />
+        <result property="deviceId" column="device_id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="kind" column="kind" />
+        <result property="source" column="source" />
+        <result property="eventType" column="event_type" />
+        <result property="hostId" column="host_id" />
+        <result property="hostName" column="host_name" />
+        <result property="sessionId" column="session_id" />
+        <result property="command" column="command" />
+        <result property="risk" column="risk" />
+        <result property="decision" column="decision" />
+        <result property="exitCode" column="exit_code" />
+        <result property="detail" column="detail" />
+        <result property="occurredAt" column="occurred_at" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+    <sql id="selectItmAuditCommand">select audit_id, client_event_id, device_id, user_id, user_name, kind, source, event_type, host_id, host_name, session_id, command, risk, decision, exit_code, detail, occurred_at, create_time from itm_audit_command</sql>
+
+    <select id="selectItmAuditCommandList" parameterType="ItmAuditCommand" resultMap="ItmAuditCommandResult">
+        <include refid="selectItmAuditCommand"/>
+        <where>
+            <if test="kind != null and kind != ''">and kind = #{kind}</if>
+            <if test="source != null and source != ''">and source = #{source}</if>
+            <if test="userName != null and userName != ''">and user_name like concat('%', #{userName}, '%')</if>
+            <if test="deviceId != null and deviceId != ''">and device_id = #{deviceId}</if>
+            <if test="hostName != null and hostName != ''">and host_name like concat('%', #{hostName}, '%')</if>
+            <if test="command != null and command != ''">and command like concat('%', #{command}, '%')</if>
+            <if test="risk != null and risk != ''">and risk = #{risk}</if>
+            <if test="decision != null and decision != ''">and decision = #{decision}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">and date_format(occurred_at,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')</if>
+            <if test="params.endTime != null and params.endTime != ''">and date_format(occurred_at,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')</if>
+        </where>
+        order by occurred_at desc, audit_id desc
+    </select>
+
+    <select id="selectItmAuditCommandById" parameterType="Long" resultMap="ItmAuditCommandResult">
+        <include refid="selectItmAuditCommand"/> where audit_id = #{auditId}
+    </select>
+
+    <insert id="insertIgnoreBatch">
+        insert ignore into itm_audit_command (client_event_id, device_id, user_id, user_name, kind, source, event_type, host_id, host_name, session_id, command, risk, decision, exit_code, detail, occurred_at, create_time)
+        values
+        <foreach collection="list" item="i" separator=",">
+            (#{i.clientEventId}, #{i.deviceId}, #{i.userId}, #{i.userName}, #{i.kind}, #{i.source}, #{i.eventType}, #{i.hostId}, #{i.hostName}, #{i.sessionId}, #{i.command}, #{i.risk}, #{i.decision}, #{i.exitCode}, #{i.detail}, #{i.occurredAt}, sysdate())
+        </foreach>
+    </insert>
+
+
+    <select id="selectExistingEventIds" resultType="String">
+        select client_event_id from itm_audit_command where device_id = #{deviceId} and client_event_id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <delete id="deleteBefore">
+        delete from itm_audit_command where occurred_at &lt; #{before} limit #{limit}
+    </delete>
+</mapper>

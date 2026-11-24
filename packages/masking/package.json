@@ -1,0 +1,13 @@
+{
+  "name": "@itm/masking",
+  "version": "0.1.0",
+  "private": true,
+  "description": "发送给模型前的数据脱敏与还原（文档一 7.7）",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  }
+}

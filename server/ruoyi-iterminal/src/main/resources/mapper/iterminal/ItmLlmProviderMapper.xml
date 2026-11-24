@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmLlmProviderMapper">
+
+    <resultMap type="ItmLlmProvider" id="ItmLlmProviderResult">
+        <id     property="providerId" column="provider_id" />
+        <result property="providerName" column="provider_name" />
+        <result property="providerType" column="provider_type" />
+        <result property="baseUrl" column="base_url" />
+        <result property="apiKeyEnc" column="api_key_enc" />
+        <result property="models" column="models" />
+        <result property="thinkingStyle" column="thinking_style" />
+        <result property="echoReasoning" column="echo_reasoning" />
+        <result property="roleKeys" column="role_keys" />
+        <result property="userIds" column="user_ids" />
+        <result property="deptIds" column="dept_ids" />
+        <result property="sort" column="sort" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+    <sql id="selectItmLlmProvider">select provider_id, provider_name, provider_type, base_url, api_key_enc, models, thinking_style, echo_reasoning, role_keys, user_ids, dept_ids, sort, status, create_by, create_time, update_by, update_time, remark from itm_llm_provider</sql>
+
+    <select id="selectItmLlmProviderById" parameterType="Long" resultMap="ItmLlmProviderResult">
+        <include refid="selectItmLlmProvider"/> where provider_id = #{providerId}
+    </select>
+
+    <select id="selectItmLlmProviderList" parameterType="ItmLlmProvider" resultMap="ItmLlmProviderResult">
+        <include refid="selectItmLlmProvider"/>
+        <where>
+            <if test="providerName != null and providerName != ''">and provider_name like concat('%', #{providerName}, '%')</if>
+            <if test="providerType != null and providerType != ''">and provider_type = #{providerType}</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by sort, provider_id
+    </select>
+
+    <insert id="insertItmLlmProvider" parameterType="ItmLlmProvider" useGeneratedKeys="true" keyProperty="providerId">
+        insert into itm_llm_provider (provider_name, provider_type, base_url, api_key_enc, models, thinking_style, echo_reasoning, role_keys, user_ids, dept_ids, sort, status, create_by, create_time, remark)
+        values (#{providerName}, #{providerType}, #{baseUrl}, '', #{models}, ifnull(#{thinkingStyle}, 'none'), ifnull(#{echoReasoning}, '0'), ifnull(#{roleKeys}, ''), ifnull(#{userIds}, ''), ifnull(#{deptIds}, ''), ifnull(#{sort}, 0), ifnull(#{status}, '0'), ifnull(#{createBy}, ''), sysdate(), ifnull(#{remark}, ''))
+    </insert>
+
+    <update id="updateItmLlmProvider" parameterType="ItmLlmProvider">
+        update itm_llm_provider
+        <set>
+            <if test="providerName != null">provider_name = #{providerName},</if>
+            <if test="providerType != null">provider_type = #{providerType},</if>
+            <if test="baseUrl != null">base_url = #{baseUrl},</if>
+            <if test="models != null">models = #{models},</if>
+            <if test="thinkingStyle != null">thinking_style = #{thinkingStyle},</if>
+            <if test="echoReasoning != null">echo_reasoning = #{echoReasoning},</if>
+            <if test="roleKeys != null">role_keys = #{roleKeys},</if>
+            <if test="userIds != null">user_ids = #{userIds},</if>
+            <if test="deptIds != null">dept_ids = #{deptIds},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where provider_id = #{providerId}
+    </update>
+
+    <update id="updateApiKey">
+        update itm_llm_provider set api_key_enc = #{apiKeyEnc} where provider_id = #{providerId}
+    </update>
+
+    <delete id="deleteItmLlmProviderByIds" parameterType="Long">
+        delete from itm_llm_provider where provider_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+</mapper>

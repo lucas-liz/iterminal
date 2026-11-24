@@ -1,0 +1,6 @@
+**/target
+**/node_modules
+ruoyi-ui/dist
+deploy/.env
+.idea
+*.log

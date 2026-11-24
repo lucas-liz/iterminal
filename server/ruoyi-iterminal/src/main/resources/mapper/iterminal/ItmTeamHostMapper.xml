@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iterminal.mapper.ItmTeamHostMapper">
+
+    <resultMap type="ItmTeamHost" id="HostResult">
+        <id     property="hostId" column="host_id" />
+        <result property="folderId" column="folder_id" />
+        <result property="hostName" column="host_name" />
+        <result property="protocol" column="protocol" />
+        <result property="address" column="address" />
+        <result property="port" column="port" />
+        <result property="username" column="username" />
+        <result property="authMethod" column="auth_method" />
+        <result property="passwordEnc" column="password_enc" />
+        <result property="privateKeyEnc" column="private_key_enc" />
+        <result property="passphraseEnc" column="passphrase_enc" />
+        <result property="allowReveal" column="allow_reveal" />
+        <result property="roleKeys" column="role_keys" />
+        <result property="note" column="note" />
+        <result property="sort" column="sort" />
+        <result property="status" column="status" />
+        <result property="version" column="version" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+    <sql id="selectHost">select host_id, folder_id, host_name, protocol, address, port, username, auth_method, password_enc, private_key_enc, passphrase_enc, allow_reveal, role_keys, note, sort, status, version, create_by, create_time, update_by, update_time from itm_team_host</sql>
+
+    <select id="selectList" parameterType="ItmTeamHost" resultMap="HostResult">
+        <include refid="selectHost"/>
+        <where>
+            <if test="folderId != null">and folder_id = #{folderId}</if>
+            <if test="hostName != null and hostName != ''">and (host_name like concat('%', #{hostName}, '%') or address like concat('%', #{hostName}, '%'))</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by sort, host_name
+    </select>
+    <select id="selectEnabled" resultMap="HostResult"><include refid="selectHost"/> where status = '0' order by sort, host_name</select>
+    <select id="selectById" parameterType="Long" resultMap="HostResult"><include refid="selectHost"/> where host_id = #{hostId}</select>
+    <select id="countInFolder" parameterType="Long" resultType="int">select count(*) from itm_team_host where folder_id = #{folderId}</select>
+
+    <insert id="insertHost" parameterType="ItmTeamHost" useGeneratedKeys="true" keyProperty="hostId">
+        insert into itm_team_host (folder_id, host_name, protocol, address, port, username, auth_method, allow_reveal, role_keys, note, sort, status, version, create_by, create_time)
+        values (ifnull(#{folderId}, 0), #{hostName}, ifnull(#{protocol}, 'SSH'), #{address}, ifnull(#{port}, 22), ifnull(#{username}, ''), ifnull(#{authMethod}, 'PASSWORD'), ifnull(#{allowReveal}, '0'),
+                ifnull(#{roleKeys}, ''), ifnull(#{note}, ''), ifnull(#{sort}, 0), ifnull(#{status}, '0'), 1, ifnull(#{createBy}, ''), sysdate())
+    </insert>
+
+    <update id="updateHost" parameterType="ItmTeamHost">
+        update itm_team_host
+        <set>
+            <if test="folderId != null">folder_id = #{folderId},</if>
+            <if test="hostName != null">host_name = #{hostName},</if>
+            <if test="protocol != null">protocol = #{protocol},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="port != null">port = #{port},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="authMethod != null">auth_method = #{authMethod},</if>
+            <if test="allowReveal != null">allow_reveal = #{allowReveal},</if>
+            <if test="roleKeys != null">role_keys = #{roleKeys},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            version = version + 1,
+            update_time = sysdate()
+        </set>
+        where host_id = #{hostId}
+    </update>
+
+    <update id="updateSecrets">
+        update itm_team_host
+        <set>
+            <if test="passwordEnc != null">password_enc = #{passwordEnc},</if>
+            <if test="privateKeyEnc != null">private_key_enc = #{privateKeyEnc},</if>
+            <if test="passphraseEnc != null">passphrase_enc = #{passphraseEnc},</if>
+            version = version + 1
+        </set>
+        where host_id = #{hostId}
+    </update>
+
+    <delete id="deleteByIds" parameterType="Long">
+        delete from itm_team_host where host_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+</mapper>
