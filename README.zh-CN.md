@@ -149,7 +149,7 @@ args = ["-y", "mcp-remote", "http://127.0.0.1:7788/mcp", "--header", "Authorizat
 |---|---|
 | macOS（Apple 芯片） | `iTerminal-<版本>-arm64.dmg` |
 | macOS（Intel） | `iTerminal-<版本>.dmg` |
-| Windows（x64） | `iTerminal Setup <版本>.exe` |
+| Windows（x64） | `iTerminal-Setup-<版本>.exe` |
 
 - 发布的安装包**没有内置任何后端地址**，安装后是纯本地模式；需要团队功能时自己部署后端（见下文）。
 - 安装包没有经过苹果公证 / 微软签名：

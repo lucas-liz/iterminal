@@ -151,7 +151,7 @@ Get the installers from [Releases](../../releases):
 |---|---|
 | macOS (Apple silicon) | `iTerminal-<version>-arm64.dmg` |
 | macOS (Intel) | `iTerminal-<version>.dmg` |
-| Windows (x64) | `iTerminal Setup <version>.exe` |
+| Windows (x64) | `iTerminal-Setup-<version>.exe` |
 
 - Release builds contain **no backend address** — they start in local-only mode. Deploy your own backend for team features (see below).
 - Builds are not notarized / code-signed:
